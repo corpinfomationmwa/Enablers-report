@@ -729,7 +729,7 @@
         };
 
         // Google Sheets Configuration
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyQAk17L9c8uGlMP44U9zua8-ABNF9Fu2EZHWWFMsq2otllh4fTs3Gb3wxfFqIgoqk-/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxed88DBBqskJabhoE48hSDm5woSnkOtA1uj9MVKyzSSY3gMkwPzBqvU-KZy3MHaZjzlw/exec';
 
         // Global variables
         let allData = [];
@@ -1094,14 +1094,15 @@
                     created_at: new Date().toISOString()
                 };
 
-                await fetch(GOOGLE_SCRIPT_URL, {
+                const postRes = await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify(submitData)
                 });
-
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                const postResult = await postRes.json().catch(() => ({}));
+                if (postResult.status === 'error') {
+                    throw new Error(postResult.message || 'บันทึกข้อมูลไม่สำเร็จ');
+                }
                 
                 try { await loadDataFromGoogleSheets(); } catch(e) {}
                 
@@ -1545,12 +1546,10 @@ communicationDetails.forEach((detail, i) => {
                         }
                     });
 
-                    await fetch(`${GOOGLE_SCRIPT_URL}?action=delete&id=${id}`, {
-                        method: 'GET',
-                        mode: 'no-cors'
+                    const delRes = await fetch(`${GOOGLE_SCRIPT_URL}?action=delete&id=${id}`, {
+                        method: 'GET'
                     });
-
-                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    await delRes.json().catch(() => ({}));
                     await loadDataFromGoogleSheets();
 
                     Swal.fire({
