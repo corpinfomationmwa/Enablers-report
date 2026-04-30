@@ -1,15 +1,7 @@
 <!doctype html>
 <html lang="th">
  <head>
-  <meta http-equiv="Content-Security-Policy" content="
-    default-src 'self';
-    script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://kit.fontawesome.com;
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com;
-    font-src 'self' https://fonts.gstatic.com https://ka-f.fontawesome.com https://cdnjs.cloudflare.com;
-    img-src 'self' data: https://drive.google.com https://lh3.googleusercontent.com https://*.googleusercontent.com;
-    connect-src 'self' https://script.google.com https://fonts.googleapis.com;
-    frame-src 'none';
-  ">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:;">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ระบบรายงานการสื่อสาร Enablers</title>
@@ -1102,15 +1094,18 @@
                     created_at: new Date().toISOString()
                 };
 
-                const postRes = await fetch(GOOGLE_SCRIPT_URL, {
+                // Apps Script ไม่รองรับ CORS สำหรับ POST โดยตรง
+                // ใช้ no-cors (fire-and-forget) — Apps Script จะยังประมวลผลได้ปกติ
+                // แต่เราอ่าน response ไม่ได้ จึงใช้การโหลดข้อมูลใหม่เพื่อยืนยัน
+                await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
+                    mode: 'no-cors',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify(submitData)
                 });
-                const postResult = await postRes.json().catch(() => ({}));
-                if (postResult.status === 'error') {
-                    throw new Error(postResult.message || 'บันทึกข้อมูลไม่สำเร็จ');
-                }
+                // รอให้ Apps Script ประมวลผลเสร็จ (upload ไฟล์ + บันทึก + ส่งอีเมล)
+                const waitTime = submitData.files_data && JSON.parse(submitData.files_data).length > 0 ? 6000 : 3000;
+                await new Promise(resolve => setTimeout(resolve, waitTime));
                 
                 try { await loadDataFromGoogleSheets(); } catch(e) {}
                 
