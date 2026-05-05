@@ -1404,9 +1404,10 @@
                             const isWord = fileName.endsWith('.doc') || fileName.endsWith('.docx') || fileType.includes('word');
 
                             if (isImage && fileId) {
-                                const imgSrc = `https://drive.google.com/uc?export=view&id=${fileId}`;
+                                // เปลี่ยนจาก uc?export=view เป็น thumbnail เพื่อดึงรูปมาย่อขนาด และเอา crossorigin ออกเพื่อให้รองรับอีเมลองค์กร
+                                const imgSrc = `https://drive.google.com/thumbnail?id=${fileId}&sz=w400`;
                                 filesHtml += `<div style="margin:6px 0;"><a href="${file.url}" target="_blank">
-                                    <img src="${imgSrc}" alt="${file.name||'รูป'}" style="max-width:120px;height:auto;border:1px solid #ccc;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.1);" crossorigin="anonymous">
+                                    <img src="${imgSrc}" alt="${file.name||'รูป'}" style="max-width:120px;height:auto;border:1px solid #ccc;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.1);">
                                 </a></div>`;
                             } else if (isPdf) {
                                 filesHtml += `<div style="margin:4px 0;"><a href="${file.url}" target="_blank" style="color:#d32f2f;font-size:0.9em;text-decoration:none;display:inline-flex;align-items:center;gap:6px;word-break:break-all;">
